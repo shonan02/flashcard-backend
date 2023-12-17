@@ -3,6 +3,25 @@ const { startStandaloneServer } = require('@apollo/server/standalone');
 
 
 const typeDefs = gql`
+    Flashcard {
+        Prompt: String!,
+        Definition: String!
+        Subject: Subject!
+    }
+
+    Subject {
+        name: String!
+    }
+
+    Set {
+        Subject: Subject!
+        Cards: [Flashcard!]!
+    }
+
+    User{
+        username: String!
+        password: String!
+    }
 `
 
 const resolvers = {
@@ -14,7 +33,8 @@ const resolvers = {
     }
 }
 const server = new ApolloServer({
-    
+    typeDefs,
+    resolvers
 })
 
 startStandaloneServer(server, {
