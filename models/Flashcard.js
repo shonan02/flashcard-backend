@@ -1,12 +1,17 @@
 const mongoose = require('mongoose');
 
 const schema = new mongoose.Schema({
-    Prompt: {
+    prompt: {
         type: String,
         required: true
     },
-    Definition: {
+    definition: {
         type: String,
+        required: true
+    },
+    subject: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Subject',
         required: true
     }
 })
