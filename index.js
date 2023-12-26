@@ -1,44 +1,54 @@
+require('dotenv').config();
+
+//Apollo server configuration
 const { ApolloServer } = require('@apollo/server');
 const { startStandaloneServer } = require('@apollo/server/standalone');
+const { expressMiddleware } = require('@apollo/server/express4');
+const { ApolloServerPluginDrainHttpServer } = require('@apollo/server/plugin/drainHttpServer');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
 
 
-const typeDefs = gql`
-    Flashcard {
-        Prompt: String!,
-        Definition: String!
-        Subject: Subject!
-    }
+const typeDefs = require('./schema');
+const resolvers = require('./resolvers');
 
-    Subject {
-        name: String!
-    }
 
-    Set {
-        Subject: Subject!
-        Cards: [Flashcard!]!
-    }
+//Express middleware configuration
+const express = require('express');
+const cors = require('cors');
+const http = require('http');
 
-    User{
-        username: String!
-        password: String!
-    }
-`
+//DB connection
+const dbConnection = require('./db');
+dbConnection();
 
-const resolvers = {
-    Query: {
+//Setup function
+const start = async () => {
+    //Express app
+    const app = express();
+    const httpServer = http.createServer();
 
-    },
-    Mutation: {
+    //Apollo server   
+    const server = new ApolloServer({
+        schema: makeExecutableSchema({ typeDefs, resolvers }),
+        //Middleware to ensure safe shutting of the server
+        plugins: [ApolloServerPluginDrainHttpServer({ httpServer })]
+    })
 
-    }
+    await server.start();
+
+    //Configure middleware
+    app.use('/',
+        cors(),
+        express.json(),
+        expressMiddleware({ app: server })
+    )
+
+
+    const PORT = 4000;
+
+    httpServer.listen(PORT, () => {
+        console.log(`Server is now running http://localhost:${PORT}`);
+    })
 }
-const server = new ApolloServer({
-    typeDefs,
-    resolvers
-})
 
-startStandaloneServer(server, {
-    listen: { port: 4000 },
-  }).then(({ url }) => {
-    console.log(`Server ready at ${url}`)
-  })
+start();
